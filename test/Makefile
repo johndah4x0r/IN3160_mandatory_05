@@ -8,9 +8,10 @@ TOPLEVEL_LANG ?= vhdl
 EXTRA_ARGS +=--std=08
 
 # TOPLEVEL is the name of the toplevel module in your VHDL file
-TOPLEVEL = pargen
+TOPLEVEL = pargen_modified
 
-VHDL_SOURCES += $(PWD)/../src/*.vhd
+VHDL_SOURCES = $(PWD)/../src/$(TOPLEVEL).vhd
+VHDL_SOURCES += $(PWD)/../src/package_*.vhd
 
 SIM_ARGS +=--wave=$(TOPLEVEL).ghw 
 
