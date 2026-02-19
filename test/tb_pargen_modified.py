@@ -1,3 +1,4 @@
+import random
 import cocotb
 from cocotb import start_soon
 from cocotb.clock import Clock
@@ -20,7 +21,11 @@ def parity(value):
       result(int): Parity of value (1 or 0).
     """
     result = 0
-    for i in range(value.n_bits):
+
+    # Mutate `value` into an integer
+    value = int(value)
+
+    while value != 0:
         result = result ^ (value & 1)
         value = value >> 1
     return result
@@ -35,22 +40,21 @@ def predict(dut):
    
 
 async def stimuli_generator(dut):
-    indata1_pattern = [0x0001, 0x0003, 0x000F, 0x0005, 0x0004]
-    indata2_pattern = [0x0005, 0x0001, 0x0003, 0x0007, 0x000F]
-
-    for i in range(len(indata1_pattern)):
+    # Use dynamically-generated ephemeral sequence
+    for i in range(20):
         await FallingEdge(dut.mclk)
-        dut.indata1.value = indata1_pattern[i]
-        dut.indata2.value = indata2_pattern[i]
+        dut.indata1.value = random.randint(0, 65536)
+        dut.indata2.value = i
         await RisingEdge(dut.mclk)
     # Awaiting one last rising_edge(mclk) without changes
     await RisingEdge(dut.mclk)
 
 
 async def compare(dut):
-    # Your code here.
-    pass
-
+    await ReadOnly()
+    assert predict(dut) == dut.par.value
+    assert parity(dut.indata1.value) == dut.toggle_parity.value
+    assert parity(dut.indata2.value) == dut.xor_parity.value
 
 @cocotb.test()
 async def main_test(dut):
